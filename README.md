@@ -14,7 +14,7 @@ The workflow is defined in the `.github/workflows/docker-publish.yml` file and c
 
 1.  **Cache ISOs:** The workflow caches the `iso` directory to speed up subsequent runs.
 2.  **Download ISOs:** The workflow runs the `scripts/download-isos.sh` script to download any missing ISOs from the URLs specified in the `iso_urls.txt` file.
-2.  **Build Docker images:** The workflow runs the `scripts/build.sh` script to build the Docker images from the downloaded ISOs.
+2.  **Build Docker images:** The workflow runs the `scripts/build.sh` script to build the Docker images from the downloaded ISOs. The script will also print a summary of the extracted ISO information and the generated Docker tag for each image.
 3.  **Verify Docker images:** The workflow runs the `scripts/verify-image.sh` script to perform basic verification of the built Docker images.
 4.  **Publish to Docker Hub:** The workflow pushes the verified Docker images to Docker Hub.
 

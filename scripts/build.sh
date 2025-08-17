@@ -114,6 +114,40 @@ build_image() {
     echo "$image_tag" >> "$IMAGE_TAGS_FILE"
 }
 
+# Function to summarize build information
+summarize_build_info() {
+    local iso_file="$1"
+    local branch="$2"
+    local arch="$3"
+    local version="$4"
+    local release_date="$5"
+    local kernel_type="$6"
+    local desktop_env="$7"
+    local update_type="$8"
+    local hardware_type="$9"
+    local release_channel="${10}"
+    local build_type="${11}"
+    local cpu_type="${12}"
+    local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}-${cpu_type}"
+
+    echo "\n--- Build Summary ---"
+    echo "ISO File: $iso_file"
+    echo "Branch: $branch"
+    echo "Architecture: $arch"
+    echo "Version: $version"
+    echo "Release Date: $release_date"
+    echo "Kernel Type: $kernel_type"
+    echo "Desktop Environment: $desktop_env"
+    echo "Update Type: $update_type"
+    echo "Hardware Type: $hardware_type"
+    echo "Release Channel: $release_channel"
+    echo "Build Type: $build_type"
+    echo "CPU Type: $cpu_type"
+    echo "Docker Image Tag: $image_tag"
+    echo "---------------------"
+}
+
 # Main script execution
 check_sudo
 trap cleanup EXIT
@@ -154,6 +188,8 @@ for ISO_FILE in $ISO_FILES; do
     copy_rootfs
     unmount_iso
     build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE" "$CPU_TYPE"
+
+    summarize_build_info "$ISO_FILE" "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE" "$CPU_TYPE"
 
     echo "Docker image built successfully!"
 done
