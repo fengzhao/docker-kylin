@@ -12,7 +12,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Cache ISOs
+      id: cache-isos
+      uses: actions/cache@v4
+      with:
+        path: iso
+        key: ${{ runner.os }}-iso-${{ hashFiles('iso_urls.txt') }}
+
     - name: Download ISOs
+      if: steps.cache-isos.outputs.cache-hit != 'true'
       run: ./scripts/download-isos.sh
 
     - name: Build and Verify Docker images
