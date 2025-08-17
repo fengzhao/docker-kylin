@@ -1,21 +1,87 @@
 name: Docker Image CI
 
-on:  push:    branches: [ "main" ]    paths-ignore:      - 'README.md'      - 'README_zh.md'  schedule:    - cron: '0 0 * * 0' # Run once a week at midnight on Sunday
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'README_zh.md'
+  schedule:
+    - cron: '0 0 * * 0' # Run once a week at midnight on Sunday
 
-jobs:  generate-matrix:    runs-on: ubuntu-latest    outputs:      urls: ${{ steps.set-urls.outputs.urls }}    steps:      - uses: actions/checkout@v4      - id: set-urls        run: |          sudo apt-get update && sudo apt-get install -y jq          URLS=$(cat iso_urls.txt | jq -R -s -c 'split("\n") | map(select(length > 0))')          echo "urls=$URLS" >> $GITHUB_OUTPUT
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      urls: ${{ steps.set-urls.outputs.urls }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-urls
+        run: |
+          URLS=$(cat iso_urls.txt | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "urls=$URLS" >> $GITHUB_OUTPUT
 
-  build:    needs: generate-matrix    runs-on: ubuntu-latest    strategy:      matrix:        url: ${{ fromJson(needs.generate-matrix.outputs.urls) }}    steps:    - uses: actions/checkout@v4
+  build:
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        url: ${{ fromJson(needs.generate-matrix.outputs.urls) }}
+    steps:
+    - uses: actions/checkout@v4
 
-    - name: Set up QEMU      uses: docker/setup-qemu-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
 
-    - name: Download ISO      continue-on-error: true      run: |        set -x        DOWNLOADED_ISO_PATH=$(./scripts/download-isos.sh "${{ matrix.url }}")        echo "DOWNLOADED_ISO_PATH=$DOWNLOADED_ISO_PATH" >> $GITHUB_ENV
+    - name: Cache ISOs
+      uses: actions/cache@v3
+      with:
+        path: iso
+        key: ${{ runner.os }}-iso-${{ hashFiles('iso_urls.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-iso-
 
-    - name: Build and Verify Docker image      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')      env:        DOCKER_IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/kylin      run: |        set -x        # The build script requires sudo, so we need to run it with sudo        # and make sure the environment variables are passed.        sudo -E ./scripts/build.sh "${{ env.DOWNLOADED_ISO_PATH }}"
+    - name: Download ISO
+      continue-on-error: true
+      run: |
+        set -x
+        DOWNLOADED_ISO_PATH=$(./scripts/download-isos.sh "${{ matrix.url }}")
+        echo "DOWNLOADED_ISO_PATH=$DOWNLOADED_ISO_PATH" >> $GITHUB_ENV
 
-    - name: Log in to Docker Hub      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')      uses: docker/login-action@v2      with:        username: ${{ secrets.DOCKERHUB_USERNAME }}        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and Verify Docker image
+      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')
+      env:
+        DOCKER_IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/kylin
+      run: |
+        set -x
+        # The build script requires sudo, so we need to run it with sudo
+        # and make sure the environment variables are passed.
+        sudo -E ./scripts/build.sh "${{ env.DOWNLOADED_ISO_PATH }}"
 
-    - name: Push the Docker image to Docker Hub      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')      run: |        set -x        IMAGE_TAG=$(cat image_tags.txt)        ./scripts/verify-image.sh "$IMAGE_TAG"        docker push "$IMAGE_TAG"
+    - name: Log in to Docker Hub
+      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Clean up Docker images      if: always()      run: |        set -x        ./scripts/cleanup-docker-images.sh
+    - name: Push the Docker image to Docker Hub
+      if: env.DOWNLOADED_ISO_PATH != '' && !contains(env.DOWNLOADED_ISO_PATH, 'Warning:')
+      run: |
+        set -x
+        IMAGE_TAG=$(cat image_tags.txt)
+        ./scripts/verify-image.sh "$IMAGE_TAG"
+        docker push "$IMAGE_TAG"
 
-  cleanup-scheduled:    runs-on: ubuntu-latest    steps:      - uses: actions/checkout@v4      - name: Clean up old Docker images        run: ./scripts/cleanup-docker-images.sh
+    - name: Clean up Docker images
+      if: always()
+      run: |
+        set -x
+        ./scripts/cleanup-docker-images.sh
+
+  cleanup-scheduled:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean up old Docker images
+        run: ./scripts/cleanup-docker-images.sh
