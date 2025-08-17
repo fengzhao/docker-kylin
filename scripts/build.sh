@@ -49,6 +49,7 @@ extract_info() {
     release_date=$(echo "$filename" | grep -o -E '20[0-9]{6}' | head -n 1)
     kernel_type=$(echo "$filename" | grep -o -E '(HWE|HWE-PP)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     desktop_env=$(echo "$filename" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    update_type=$(echo "$filename" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
@@ -66,7 +67,11 @@ extract_info() {
     if [ -z "$desktop_env" ]; then
         desktop_env="default"
     fi
-    echo "$branch $arch $version $release_date $kernel_type $desktop_env"
+
+    if [ -z "$update_type" ]; then
+        update_type="none"
+    fi
+    echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type"
 }
 
 # Function to build Docker image
@@ -77,8 +82,9 @@ build_image() {
     local release_date="$4"
     local kernel_type="$5"
     local desktop_env="$6"
+    local update_type="$7"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -115,11 +121,12 @@ for ISO_FILE in $ISO_FILES; do
     RELEASE_DATE=$(echo "$INFO" | awk '{print $4}')
     KERNEL_TYPE=$(echo "$INFO" | awk '{print $5}')
     DESKTOP_ENV=$(echo "$INFO" | awk '{print $6}')
+    UPDATE_TYPE=$(echo "$INFO" | awk '{print $7}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV"
+    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE"
 
     echo "Docker image built successfully!"
 done
