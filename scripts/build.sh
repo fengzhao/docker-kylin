@@ -85,27 +85,27 @@ extract_info() {
     local release_suffix
 
     # Function to extract field using sed
-    local extract_field_internal() {
+    extract_field_internal() {
         local fname="$1"
         local pattern="$2"
         local default_value="$3"
-                local extracted_value=$(echo "$fname" | sed -n -E "s/.*($pattern).*/\1/p" | head -n 1 | tr '[:upper:]' '[:lower:]')
+        local extracted_value=$(echo "$fname" | sed -n -E "s/.*($pattern).*/\1/p" | head -n 1 | tr '[:upper:]' '[:lower:]')
         echo "${extracted_value:-$default_value}"
     }
 
     branch=$(extract_field_internal "$filename" "Kylin-Desktop|Kylin-Server" "")
     branch=$(echo "$branch" | sed 's/kylin-//g')
     arch=$(extract_field_internal "$filename" "X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el" "")
-    version=$(extract_field_internal "$filename" "V[0-9]\+-SP[0-9]\+-[0-9]\+" "")
+    version=$(extract_field_internal "$filename" "V[0-9]+-SP[0-9]+-[0-9]+" "")
     release_date=$(extract_field_internal "$filename" "20[0-9]{6}" "unknown")
     kernel_type=$(extract_field_internal "$filename" "HWE-PP|HWE" "standard")
     desktop_env=$(extract_field_internal "$filename" "Wayland|KDE|GNOME|UKUI|Deepin" "default")
-    update_type=$(extract_field_internal "$filename" "update[0-9]\+" "none")
-    hardware_type=$(extract_field_internal "$filename" "HW-[a-zA-Z0-9]\+" "generic")
+    update_type=$(extract_field_internal "$filename" "update[0-9]+" "none")
+    hardware_type=$(extract_field_internal "$filename" "HW-[a-zA-Z0-9]+" "generic")
     release_channel=$(extract_field_internal "$filename" "Retail" "official")
     build_type=$(extract_field_internal "$filename" "Release" "release")
     cpu_type=$(extract_field_internal "$filename" "兆芯|海光|Intel|AMD|英特尔12代及以上CPU|飞腾|鲲鹏|龙芯3A5000|3A6000|龙芯3A4000|麒麟9000C|麒麟9006C|海思麒麟990" "unknown_cpu")
-    release_suffix=$(extract_field_internal "$filename" "Retail|HW-[a-zA-Z0-9]\+" "base")
+    release_suffix=$(extract_field_internal "$filename" "Retail|HW-[a-zA-Z0-9]+" "base")
 
     echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type $cpu_type $release_suffix"
 }
