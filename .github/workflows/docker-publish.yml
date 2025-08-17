@@ -26,5 +26,5 @@ jobs:
 
     - name: Push the Docker image to Docker Hub
       run: |
-        docker tag custom-distro:latest triatk/kylin:latest
-        docker push triatk/kylin:latest
+        IMAGE_TAG=$(cat image_tag.txt)
+        docker push "$IMAGE_TAG"

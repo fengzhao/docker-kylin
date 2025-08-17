@@ -5,21 +5,21 @@ This project converts a custom Debian-based Linux distro ISO to a Docker base im
 
 ## Prerequisites
 
-- A custom Debian-based Linux distro ISO file.
+- A custom Debian-based Linux distro ISO file in the `iso` directory.
 - Docker installed on your local machine.
 - `sudo` privileges to mount the ISO file.
 
 ## Usage
 
-1. **Place your ISO file in the `iso` directory.** The ISO file should be named `custom-distro.iso`.
+1. **Place your ISO file in the `iso` directory or any of its subdirectories.**
 
 2. **Run the build script:**
 
    ```bash
-   ./scripts/build.sh
+   sudo ./scripts/build.sh
    ```
 
-   This will build a Docker image with the tag `custom-distro:latest`.
+   The script will automatically find the ISO file, determine the branch (e.g., `server`, `desktop`) and architecture (e.g., `amd64`, `arm64`) from the filename, and build a Docker image with a tag in the format `triatk/kylin:<branch>-<arch>`.
 
 ## GitHub Actions
 
@@ -29,11 +29,6 @@ To use the workflow, you need to configure the following secrets in your GitHub 
 
 - `DOCKERHUB_USERNAME`: Your Docker Hub username.
 - `DOCKERHUB_TOKEN`: Your Docker Hub access token.
-
-## Customization
-
-- **ISO file name:** If your ISO file has a different name, you can change the `ISO_FILE` variable in the `scripts/build.sh` file.
-- **Docker image tag:** You can change the Docker image tag in the `scripts/build.sh` and `.github/workflows/docker-publish.yml` files.
 
 ## Contributing
 

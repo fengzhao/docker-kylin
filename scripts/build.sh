@@ -7,12 +7,29 @@ set -e
 
 # Check if the script is being run with sudo
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"_DIR"
+  echo "Please run as root"
     exit 1
 fi
 
-# Set the ISO file path.
-ISO_FILE="iso/custom-distro.iso"
+# Find the ISO file
+ISO_FILE=$(find iso -name "*.iso" -type f | head -n 1)
+
+# Check if an ISO file was found
+if [ -z "$ISO_FILE" ]; then
+    echo "Error: No ISO file found in the iso directory."
+    exit 1
+fi
+
+# Extract branch and architecture from the ISO filename
+FILENAME=$(basename -- "$ISO_FILE")
+BRANCH=$(echo "$FILENAME" | grep -o -E '(server|desktop)' | head -n 1)
+ARCH=$(echo "$FILENAME" | grep -o -E '(amd64|arm64)' | head -n 1)
+
+# Check if branch and architecture were found
+if [ -z "$BRANCH" ] || [ -z "$ARCH" ]; then
+    echo "Error: Could not determine branch and architecture from the ISO filename."
+    exit 1
+fi
 
 # Set the mount point for the ISO.
 MOUNT_POINT="/mnt/iso"
@@ -31,12 +48,6 @@ cleanup() {
 
 # Trap errors and call the cleanup function
 trap cleanup EXIT
-
-# Check if the ISO file exists.
-if [ ! -f "$ISO_FILE" ]; then
-    echo "Error: ISO file not found at $ISO_FILE"
-    exit 1
-fi
 
 # Create the mount point and rootfs directory if they don't exist.
 mkdir -p "$MOUNT_POINT"
@@ -58,7 +69,9 @@ echo "Unmounting the ISO..."
 sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
 
 # Build the Docker image.
-echo "Building the Docker image..."
-docker build -t custom-distro:latest "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
+IMAGE_TAG="triatk/kylin:${BRANCH}-${ARCH}"
+echo "Building the Docker image with tag: $IMAGE_TAG"
+echo "$IMAGE_TAG" > image_tag.txt
+docker build -t "$IMAGE_TAG" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
 
 echo "Docker image built successfully!"
