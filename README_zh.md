@@ -1,6 +1,6 @@
 # Docker Kylin
 
-该项目将基于 Debian 的自定义 Linux 发行版 ISO 转换为 Docker 基础镜像，并提供 GitHub Actions 自动发布到 Docker Hub。它支持 `amd64`、`arm64`、`loongarch64`、`mips64el` 和 `sw64` 架构。
+该项目将银河麒麟 ISO 转换为 Docker 基础镜像，并提供 GitHub Actions 自动发布到 Docker Hub。它支持 `amd64`、`arm64`、`loongarch64`、`mips64el` 和 `sw64` 架构。
 
 ## 工作原理
 
