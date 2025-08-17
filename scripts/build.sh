@@ -45,39 +45,22 @@ extract_info() {
 
     branch=$(echo "$filename" | grep -o -E '(server|desktop)' | head -n 1)
     arch=$(echo "$filename" | grep -o -E '(amd64|arm64|loongarch64|mips64el|sw64)' | head -n 1)
+    version=$(echo "$filename" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
-    if [ -z "$branch" ] || [ -z "$arch" ]; then
-        echo "Warning: Could not determine branch and architecture from the ISO filename: $filename."
+    if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
+        echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
         return 1
     fi
-    echo "$branch $arch"
-}
-
-# Function to mount ISO
-mount_iso() {
-    local iso_file="$1"
-    echo "Mounting the ISO: $iso_file..."
-    sudo mount -o loop "$iso_file" "$MOUNT_POINT" || { echo "Error: Failed to mount the ISO."; exit 1; }
-}
-
-# Function to copy root filesystem
-copy_rootfs() {
-    echo "Copying the root filesystem..."
-    rsync -a --exclude='.disk' "$MOUNT_POINT/" "$ROOTFS_DIR/" || { echo "Error: Failed to copy the root filesystem."; exit 1; }
-}
-
-# Function to unmount ISO
-unmount_iso() {
-    echo "Unmounting the ISO..."
-    sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
+    echo "$branch $arch $version"
 }
 
 # Function to build Docker image
 build_image() {
     local branch="$1"
     local arch="$2"
+    local version="$3"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -110,11 +93,12 @@ for ISO_FILE in $ISO_FILES; do
 
     BRANCH=$(echo "$INFO" | awk '{print $1}')
     ARCH=$(echo "$INFO" | awk '{print $2}')
+    VERSION=$(echo "$INFO" | awk '{print $3}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH"
+    build_image "$BRANCH" "$ARCH" "$VERSION"
 
     echo "Docker image built successfully!"
 done
