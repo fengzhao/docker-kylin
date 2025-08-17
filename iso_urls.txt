@@ -1,4 +1,3 @@
-
 https://iso.kylinos.cn/web_pungi/download/cdn/N1kIGe0WnfAMilFVURgrC75szThH6QKc/Kylin-Desktop-V10-SP1-2503-Release-20250430-X86_64.iso
 https://iso.kylinos.cn/web_pungi/download/cdn/i8JVstPLwnSjzaFpgr6f74mdhBlq1N5Y/Kylin-Desktop-V10-SP1-2503-Release-20250430-ARM64.iso
 https://iso.kylinos.cn/web_pungi/download/cdn/j1m5tfWsvMY7Gdez0bhrFxcaZRpyDUPi/Kylin-Desktop-V10-SP1-2503-Release-20250430-LoongArch64.iso

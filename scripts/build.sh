@@ -52,6 +52,7 @@ extract_info() {
     update_type=$(echo "$filename" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     release_channel=$(echo "$filename" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     build_type=$(echo "$filename" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    cpu_type=$(echo "$filename" | grep -o -E '(兆芯|海光|Intel|AMD|英特尔12代及以上CPU|飞腾|鲲鹏|龙芯3A5000|3A6000|龙芯3A4000|麒麟9000C|麒麟9006C|海思麒麟990)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
@@ -85,7 +86,11 @@ extract_info() {
     if [ -z "$build_type" ]; then
         build_type="release"
     fi
-    echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type"
+
+    if [ -z "$cpu_type" ]; then
+        cpu_type="unknown_cpu"
+    fi
+    echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type $cpu_type"
 }
 
 # Function to build Docker image
@@ -100,8 +105,9 @@ build_image() {
     local hardware_type="$8"
     local release_channel="$9"
     local build_type="${10}"
+    local cpu_type="${11}"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}-${cpu_type}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -142,11 +148,12 @@ for ISO_FILE in $ISO_FILES; do
     HARDWARE_TYPE=$(echo "$INFO" | awk '{print $8}')
     RELEASE_CHANNEL=$(echo "$INFO" | awk '{print $9}')
     BUILD_TYPE=$(echo "$INFO" | awk '{print $10}')
+    CPU_TYPE=$(echo "$INFO" | awk '{print $11}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE"
+    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE" "$CPU_TYPE"
 
     echo "Docker image built successfully!"
 done
