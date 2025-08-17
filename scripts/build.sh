@@ -192,7 +192,7 @@ build_image() {
     local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}-${cpu_type}-${release_suffix}"
 
     echo "Building the Docker image with tag: $image_tag"
-    docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
+    docker build -f Dockerfile -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
     echo "$image_tag" >> "$IMAGE_TAGS_FILE"
 }
 
