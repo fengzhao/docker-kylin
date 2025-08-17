@@ -33,7 +33,7 @@ sudo mount -o loop "$ISO_FILE" "$MOUNT_POINT"
 # This assumes the root filesystem is on the mounted ISO.
 # The exact path may vary depending on the ISO structure.
 echo "Copying the root filesystem..."
-rsync -a "$MOUNT_POINT/" "$ROOTFS_DIR/"
+rsync -a --exclude='.disk' "$MOUNT_POINT/" "$ROOTFS_DIR/"
 
 # Unmount the ISO.
 echo "Unmounting the ISO..."
