@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # This script downloads ISOs from a list of URLs.
@@ -30,7 +31,15 @@ extract_field() {
 
 BRANCH=$(extract_field "$FILENAME" "(Desktop|Server)" "")
 BRANCH=$(echo "$BRANCH" | sed 's/kylin-//g') # Remove 'kylin-' prefix if present
-ARCH=$(extract_field "$FILENAME" "(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)" "")
+ARCH_RAW=$(extract_field "$FILENAME" "(X86_64|ARM64|x86_64|arm64)" "")
+
+# Map ARCH_RAW to amd64 or arm64
+ARCH=""
+case "$ARCH_RAW" in
+    x86_64|X86_64) ARCH="amd64" ;;
+    arm64|ARM64) ARCH="arm64" ;;
+esac
+
 VERSION=$(extract_field "$FILENAME" "V[0-9]+-SP[0-9]+-[0-9]+" "")
 RELEASE_DATE=$(extract_field "$FILENAME" "20[0-9]{6}" "unknown")
 KERNEL_TYPE=$(extract_field "$FILENAME" "(HWE-PP|HWE)" "standard")
@@ -42,20 +51,20 @@ BUILD_TYPE=$(extract_field "$FILENAME" "(Release)" "release")
 CPU_TYPE="unknown_cpu" # Removed specific CPU extraction due to complexity and redundancy
 RELEASE_SUFFIX=$(extract_field "$FILENAME" "(Retail|HW-[a-zA-Z0-9]+)" "base")
 
-# Check if essential info is missing
-if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
-    echo "Warning: Could not determine essential metadata (branch, architecture, or version) from the URL: $URL. Skipping this file." >&2
+# Check if essential info is missing or if ARCH is not amd64/arm64
+if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ] || { [ "$ARCH" != "amd64" ] && [ "$ARCH" != "arm64" ]; }; then
+    echo "Warning: Could not determine essential metadata (branch, architecture, or version) or unsupported architecture from the URL: $URL. Skipping this file." >&2
     echo "" # Output empty path to signal failure to workflow
     exit 0 # Exit successfully so workflow can continue
 fi
 
 # Create the directory structure
-DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL/$BUILD_TYPE/$CPU_TYPE/$RELEASE_SUFFIX"
+DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL/$BUILD_TYPE/$RELEASE_SUFFIX"
 mkdir -p "$DOWNLOAD_DIR"
 
 # Download the ISO
 echo "Downloading $FILENAME to $DOWNLOAD_DIR" >&2
-wget -q -nv -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
+wget -q -nv --timeout=1800 -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
 
 if [ $? -ne 0 ]; then
     echo "Error: Failed to download $FILENAME from $URL." >&2
