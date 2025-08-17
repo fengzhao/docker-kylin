@@ -15,7 +15,8 @@ while read URL; do
     ARCH=$(echo "$FILENAME" | grep -o -E '(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     VERSION=$(echo "$FILENAME" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
     RELEASE_DATE=$(echo "$FILENAME" | grep -o -E '20[0-9]{6}' | head -n 1)
-    RELEASE_TYPE=$(echo "$FILENAME" | grep -o -E '(HWE|HWE-PP|Wayland|update[0-9]+|Retail|HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    KERNEL_TYPE=$(echo "$FILENAME" | grep -o -E '(HWE|HWE-PP)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    DESKTOP_ENV=$(echo "$FILENAME" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the URL: $URL. Skipping this file."
@@ -27,13 +28,18 @@ while read URL; do
         RELEASE_DATE="unknown"
     fi
 
-    # If RELEASE_TYPE is empty, set it to 'standard'
-    if [ -z "$RELEASE_TYPE" ]; then
-        RELEASE_TYPE="standard"
+    # If KERNEL_TYPE is empty, set it to 'standard'
+    if [ -z "$KERNEL_TYPE" ]; then
+        KERNEL_TYPE="standard"
+    fi
+
+    # If DESKTOP_ENV is empty, set it to 'default'
+    if [ -z "$DESKTOP_ENV" ]; then
+        DESKTOP_ENV="default"
     fi
 
     # Create the directory structure
-    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$RELEASE_TYPE"
+    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV"
     mkdir -p "$DOWNLOAD_DIR"
 
     # Download the ISO
