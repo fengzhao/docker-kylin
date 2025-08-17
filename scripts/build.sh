@@ -44,7 +44,7 @@ extract_info() {
     local arch
 
     branch=$(echo "$filename" | grep -o -E '(server|desktop)' | head -n 1)
-    arch=$(echo "$filename" | grep -o -E '(amd64|arm64)' | head -n 1)
+    arch=$(echo "$filename" | grep -o -E '(amd64|arm64|loongarch64|mips64el|sw64)' | head -n 1)
 
     if [ -z "$branch" ] || [ -z "$arch" ]; then
         echo "Warning: Could not determine branch and architecture from the ISO filename: $filename."

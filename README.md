@@ -1,7 +1,7 @@
 
 # Docker Kylin
 
-This project converts custom Debian-based Linux distro ISOs to Docker base images and provides a GitHub Action to automatically publish them to Docker Hub.
+This project converts custom Debian-based Linux distro ISOs to Docker base images and provides a GitHub Action to automatically publish them to Docker Hub. It supports `amd64`, `arm64`, `loongarch64`, `mips64el`, and `sw64` architectures.
 
 ## How it works
 

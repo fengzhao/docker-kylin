@@ -12,7 +12,7 @@ mkdir -p iso
 while read URL; do
     FILENAME=$(basename -- "$URL")
     BRANCH=$(echo "$FILENAME" | grep -o -E '(server|desktop)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    ARCH=$(echo "$FILENAME" | grep -o -E '(x86_64|X86_64|arm64|ARM64)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    ARCH=$(echo "$FILENAME" | grep -o -E '(x86_64|X86_64|amd64|ARM64|arm64|loongarch64|mips64el|sw64)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$BRANCH" ] || [ -z "$ARCH" ]; then
         echo "Warning: Could not determine branch and architecture from the URL: $URL. Skipping this file."
