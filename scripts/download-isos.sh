@@ -22,6 +22,7 @@ while read URL; do
     RELEASE_CHANNEL=$(echo "$FILENAME" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     BUILD_TYPE=$(echo "$FILENAME" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     CPU_TYPE=$(echo "$FILENAME" | grep -o -E '(兆芯|海光|Intel|AMD|英特尔12代及以上CPU|飞腾|鲲鹏|龙芯3A5000|3A6000|龙芯3A4000|麒麟9000C|麒麟9006C|海思麒麟990)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    RELEASE_SUFFIX=$(echo "$FILENAME" | grep -o -E '(Retail|HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the URL: $URL. Skipping this file."
@@ -68,8 +69,13 @@ while read URL; do
         CPU_TYPE="unknown_cpu"
     fi
 
+    # If RELEASE_SUFFIX is empty, set it to 'base'
+    if [ -z "$RELEASE_SUFFIX" ]; then
+        RELEASE_SUFFIX="base"
+    fi
+
     # Create the directory structure
-    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL/$BUILD_TYPE/$CPU_TYPE"
+    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL/$BUILD_TYPE/$CPU_TYPE/$RELEASE_SUFFIX"
     mkdir -p "$DOWNLOAD_DIR"
 
     # Download the ISO
