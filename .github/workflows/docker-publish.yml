@@ -1,0 +1,31 @@
+
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build the Docker image
+      run: |
+        # The build script requires sudo, so we need to run it with sudo
+        # and make sure the environment variables are passed.
+        sudo -E ./scripts/build.sh
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Push the Docker image to Docker Hub
+      run: |
+        # Tag the image with the Docker Hub username and push it.
+        docker tag custom-distro:latest ${{ secrets.DOCKERHUB_USERNAME }}/custom-distro:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/custom-distro:latest

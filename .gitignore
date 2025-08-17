@@ -1,0 +1,6 @@
+
+# Ignore the iso directory
+iso/
+
+# Ignore the rootfs directory created by the build script
+/tmp/rootfs/
