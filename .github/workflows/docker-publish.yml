@@ -15,7 +15,7 @@ jobs:
     - name: Download ISOs
       run: ./scripts/download-isos.sh
 
-    - name: Build the Docker images
+    - name: Build and Verify Docker images
       run: |
         # The build script requires sudo, so we need to run it with sudo
         # and make sure the environment variables are passed.
@@ -30,5 +30,6 @@ jobs:
     - name: Push the Docker images to Docker Hub
       run: |
         while read IMAGE_TAG; do
+          ./scripts/verify-image.sh "$IMAGE_TAG"
           docker push "$IMAGE_TAG"
         done < image_tags.txt
