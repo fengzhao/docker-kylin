@@ -1,17 +1,17 @@
 
 # Docker Kylin
 
-This project converts a custom Debian-based Linux distro ISO to a Docker base image and provides a GitHub Action to automatically publish it to Docker Hub.
+This project converts custom Debian-based Linux distro ISOs to Docker base images and provides a GitHub Action to automatically publish them to Docker Hub.
 
 ## Prerequisites
 
-- A custom Debian-based Linux distro ISO file in the `iso` directory.
+- One or more custom Debian-based Linux distro ISO files in the `iso` directory.
 - Docker installed on your local machine.
-- `sudo` privileges to mount the ISO file.
+- `sudo` privileges to mount the ISO files.
 
 ## Usage
 
-1. **Place your ISO file in the `iso` directory or any of its subdirectories.**
+1. **Place your ISO files in the `iso` directory or any of its subdirectories.**
 
 2. **Run the build script:**
 
@@ -19,11 +19,11 @@ This project converts a custom Debian-based Linux distro ISO to a Docker base im
    sudo ./scripts/build.sh
    ```
 
-   The script will automatically find the ISO file, determine the branch (e.g., `server`, `desktop`) and architecture (e.g., `amd64`, `arm64`) from the filename, and build a Docker image with a tag in the format `triatk/kylin:<branch>-<arch>`.
+   The script will automatically find all ISO files, determine the branch (e.g., `server`, `desktop`) and architecture (e.g., `amd64`, `arm64`) from each filename, and build Docker images with tags in the format `triatk/kylin:<branch>-<arch>`.
 
 ## GitHub Actions
 
-This project includes a GitHub Actions workflow to automatically build and publish the Docker image to Docker Hub.
+This project includes a GitHub Actions workflow to automatically build and publish the Docker images to Docker Hub.
 
 To use the workflow, you need to configure the following secrets in your GitHub repository settings:
 

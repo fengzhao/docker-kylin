@@ -24,7 +24,8 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Push the Docker image to Docker Hub
+    - name: Push the Docker images to Docker Hub
       run: |
-        IMAGE_TAG=$(cat image_tag.txt)
-        docker push "$IMAGE_TAG"
+        while read IMAGE_TAG; do
+          docker push "$IMAGE_TAG"
+        done < image_tags.txt
