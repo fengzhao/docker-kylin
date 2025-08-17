@@ -14,8 +14,17 @@ fi
 
 echo "Verifying Docker image: $IMAGE_TAG"
 
+# Extract architecture from the image tag
+ARCH=$(echo "$IMAGE_TAG" | awk -F'[-:]' '{print $3}')
+
+# Set platform flag if architecture is arm64
+PLATFORM_FLAG=""
+if [ "$ARCH" == "arm64" ]; then
+    PLATFORM_FLAG="--platform linux/arm64"
+fi
+
 # Run a simple command inside the container to verify basic functionality
-docker run --rm "$IMAGE_TAG" /bin/sh -c "ls / && cat /etc/os-release"
+docker run --rm $PLATFORM_FLAG "$IMAGE_TAG" /bin/sh -c "ls / && cat /etc/os-release"
 
 if [ $? -eq 0 ]; then
     echo "Image verification successful for $IMAGE_TAG"
