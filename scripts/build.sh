@@ -1,90 +1,120 @@
-
 #!/bin/bash
 
 # This script builds a Docker image from a custom Debian-based Linux distro ISO.
 
 set -e
 
-# Check if the script is being run with sudo
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
-    exit 1
-fi
-
-# Find all ISO files
-ISO_FILES=$(find iso -name "*.iso" -type f)
-
-# Check if any ISO files were found
-if [ -z "$ISO_FILES" ]; then
-    echo "Error: No ISO files found in the iso directory."
-    exit 1
-fi
-
-# Create a file to store the image tags
+# Global variables
+MOUNT_POINT="/mnt/iso"
+ROOTFS_DIR="/tmp/rootfs"
 IMAGE_TAGS_FILE="image_tags.txt"
+
+# Function to check for sudo privileges
+check_sudo() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "Please run as root"
+        exit 1
+    fi
+}
+
+# Function to clean up mount point and rootfs directory
+cleanup() {
+    echo "Cleaning up..."
+    if mountpoint -q -- "$MOUNT_POINT"; then
+        sudo umount "$MOUNT_POINT"
+    fi
+    rm -rf "$ROOTFS_DIR"
+}
+
+# Function to find ISO files
+find_isos() {
+    local iso_files
+    iso_files=$(find iso -name "*.iso" -type f)
+    if [ -z "$iso_files" ]; then
+        echo "Error: No ISO files found in the iso directory."
+        exit 1
+    fi
+    echo "$iso_files"
+}
+
+# Function to extract branch and architecture from filename
+extract_info() {
+    local filename="$1"
+    local branch
+    local arch
+
+    branch=$(echo "$filename" | grep -o -E '(server|desktop)' | head -n 1)
+    arch=$(echo "$filename" | grep -o -E '(amd64|arm64)' | head -n 1)
+
+    if [ -z "$branch" ] || [ -z "$arch" ]; then
+        echo "Warning: Could not determine branch and architecture from the ISO filename: $filename."
+        return 1
+    fi
+    echo "$branch $arch"
+}
+
+# Function to mount ISO
+mount_iso() {
+    local iso_file="$1"
+    echo "Mounting the ISO: $iso_file..."
+    sudo mount -o loop "$iso_file" "$MOUNT_POINT" || { echo "Error: Failed to mount the ISO."; exit 1; }
+}
+
+# Function to copy root filesystem
+copy_rootfs() {
+    echo "Copying the root filesystem..."
+    rsync -a --exclude='.disk' "$MOUNT_POINT/" "$ROOTFS_DIR/" || { echo "Error: Failed to copy the root filesystem."; exit 1; }
+}
+
+# Function to unmount ISO
+unmount_iso() {
+    echo "Unmounting the ISO..."
+    sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
+}
+
+# Function to build Docker image
+build_image() {
+    local branch="$1"
+    local arch="$2"
+    local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
+    local image_tag="${image_prefix}:${branch}-${arch}"
+
+    echo "Building the Docker image with tag: $image_tag"
+    docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
+    echo "$image_tag" >> "$IMAGE_TAGS_FILE"
+}
+
+# Main script execution
+check_sudo
+trap cleanup EXIT
+
+# Clear previous image tags
 > "$IMAGE_TAGS_FILE"
 
-# Loop through each ISO file
+# Create necessary directories
+mkdir -p "$MOUNT_POINT"
+rm -rf "$ROOTFS_DIR"
+mkdir -p "$ROOTFS_DIR"
+
+ISO_FILES=$(find_isos)
+
 for ISO_FILE in $ISO_FILES; do
     echo "Processing ISO file: $ISO_FILE"
 
-    # Extract branch and architecture from the ISO filename
     FILENAME=$(basename -- "$ISO_FILE")
-    BRANCH=$(echo "$FILENAME" | grep -o -E '(server|desktop)' | head -n 1)
-    ARCH=$(echo "$FILENAME" | grep -o -E '(amd64|arm64)' | head -n 1)
+    INFO=$(extract_info "$FILENAME")
 
-    # Check if branch and architecture were found
-    if [ -z "$BRANCH" ] || [ -z "$ARCH" ]; then
-        echo "Warning: Could not determine branch and architecture from the ISO filename: $FILENAME. Skipping this file."
+    if [ $? -ne 0 ]; then
         continue
     fi
 
-    # Set the mount point for the ISO.
-    MOUNT_POINT="/mnt/iso"
+    BRANCH=$(echo "$INFO" | awk '{print $1}')
+    ARCH=$(echo "$INFO" | awk '{print $2}')
 
-    # Set the directory to extract the root filesystem to.
-    ROOTFS_DIR="/tmp/rootfs"
-
-    # Clean up function
-    cleanup() {
-        echo "Cleaning up..."
-        if mountpoint -q -- "$MOUNT_POINT"; then
-            sudo umount "$MOUNT_POINT"
-        fi
-        rm -rf "$ROOTFS_DIR"
-    }
-
-    # Trap errors and call the cleanup function
-    trap cleanup EXIT
-
-    # Create the mount point and rootfs directory if they don't exist.
-    mkdir -p "$MOUNT_POINT"
-    rm -rf "$ROOTFS_DIR"
-    mkdir -p "$ROOTFS_DIR"
-
-    # Mount the ISO.
-    echo "Mounting the ISO..."
-    sudo mount -o loop "$ISO_FILE" "$MOUNT_POINT" || { echo "Error: Failed to mount the ISO."; exit 1; }
-
-    # Copy the root filesystem from the ISO.
-    # This assumes the root filesystem is on the mounted ISO.
-    # The exact path may vary depending on the ISO structure.
-    echo "Copying the root filesystem..."
-    rsync -a --exclude='.disk' "$MOUNT_POINT/" "$ROOTFS_DIR/" || { echo "Error: Failed to copy the root filesystem."; exit 1; }
-
-    # Unmount the ISO.
-    echo "Unmounting the ISO..."
-    sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
-
-    # Build the Docker image.
-    IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    IMAGE_TAG="${IMAGE_PREFIX}:${BRANCH}-${ARCH}"
-    echo "Building the Docker image with tag: $IMAGE_TAG"
-    docker build -t "$IMAGE_TAG" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
-
-    # Save the image tag to the file
-    echo "$IMAGE_TAG" >> "$IMAGE_TAGS_FILE"
+    mount_iso "$ISO_FILE"
+    copy_rootfs
+    unmount_iso
+    build_image "$BRANCH" "$ARCH"
 
     echo "Docker image built successfully!"
-
 done

@@ -7,6 +7,8 @@ This project converts custom Debian-based Linux distro ISOs to Docker base image
 
 The project uses a GitHub Actions workflow to automatically download the ISOs, build the Docker images, verify them, and publish them to Docker Hub.
 
+The `scripts/build.sh` script has been refactored into modular functions for better readability and maintainability.
+
 The workflow is defined in the `.github/workflows/docker-publish.yml` file and consists of the following steps:
 
 1.  **Download ISOs:** The workflow runs the `scripts/download-isos.sh` script to download the ISOs from the URLs specified in the `iso_urls.txt` file.
