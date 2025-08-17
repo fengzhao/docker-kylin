@@ -12,7 +12,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build the Docker image
+    - name: Download ISOs
+      run: ./scripts/download-isos.sh
+
+    - name: Build the Docker images
       run: |
         # The build script requires sudo, so we need to run it with sudo
         # and make sure the environment variables are passed.

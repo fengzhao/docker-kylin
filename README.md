@@ -3,32 +3,24 @@
 
 This project converts custom Debian-based Linux distro ISOs to Docker base images and provides a GitHub Action to automatically publish them to Docker Hub.
 
-## Prerequisites
+## How it works
 
-- One or more custom Debian-based Linux distro ISO files in the `iso` directory.
-- Docker installed on your local machine.
-- `sudo` privileges to mount the ISO files.
+The project uses a GitHub Actions workflow to automatically download the ISOs, build the Docker images, and publish them to Docker Hub.
+
+The workflow is defined in the `.github/workflows/docker-publish.yml` file and consists of the following steps:
+
+1.  **Download ISOs:** The workflow runs the `scripts/download-isos.sh` script to download the ISOs from the URLs specified in the `iso_urls.txt` file.
+2.  **Build Docker images:** The workflow runs the `scripts/build.sh` script to build the Docker images from the downloaded ISOs.
+3.  **Publish to Docker Hub:** The workflow pushes the built Docker images to Docker Hub.
 
 ## Usage
 
-1. **Place your ISO files in the `iso` directory or any of its subdirectories.**
-
-2. **Run the build script:**
-
-   ```bash
-   sudo ./scripts/build.sh
-   ```
-
-   The script will automatically find all ISO files, determine the branch (e.g., `server`, `desktop`) and architecture (e.g., `amd64`, `arm64`) from each filename, and build Docker images with tags in the format `triatk/kylin:<branch>-<arch>`.
-
-## GitHub Actions
-
-This project includes a GitHub Actions workflow to automatically build and publish the Docker images to Docker Hub.
-
-To use the workflow, you need to configure the following secrets in your GitHub repository settings:
+To use this project, you can either fork it or use it as a template. You will need to configure the following secrets in your GitHub repository settings:
 
 - `DOCKERHUB_USERNAME`: Your Docker Hub username.
 - `DOCKERHUB_TOKEN`: Your Docker Hub access token.
+
+You can customize the list of ISOs to be downloaded by editing the `iso_urls.txt` file.
 
 ## Contributing
 
