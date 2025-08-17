@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: set-urls
         run: |
+          sudo apt-get update && sudo apt-get install -y jq
           URLS=$(cat iso_urls.txt | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "urls=$URLS" >> $GITHUB_OUTPUT
 
@@ -32,6 +33,7 @@ jobs:
 
     - name: Download ISO
       run: |
+        set -x
         DOWNLOADED_ISO_PATH=$(./scripts/download-isos.sh "${{ matrix.url }}")
         echo "DOWNLOADED_ISO_PATH=$DOWNLOADED_ISO_PATH" >> $GITHUB_ENV
 
@@ -39,6 +41,7 @@ jobs:
       env:
         DOCKER_IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/kylin
       run: |
+        set -x
         # The build script requires sudo, so we need to run it with sudo
         # and make sure the environment variables are passed.
         sudo -E ./scripts/build.sh "${{ env.DOWNLOADED_ISO_PATH }}"
@@ -51,16 +54,20 @@ jobs:
 
     - name: Push the Docker image to Docker Hub
       run: |
+        set -x
         IMAGE_TAG=$(cat image_tags.txt)
         ./scripts/verify-image.sh "$IMAGE_TAG"
         docker push "$IMAGE_TAG"
 
     - name: Clean up Docker images
       if: always()
-      run: ./scripts/cleanup-docker-images.sh
+      run: |
+        set -x
+        ./scripts/cleanup-docker-images.sh
 
   cleanup-scheduled:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Clean up old Docker images
         run: ./scripts/cleanup-docker-images.sh
