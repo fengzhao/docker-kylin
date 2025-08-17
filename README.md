@@ -6,18 +6,20 @@ This project converts KylinOS ISOs to Docker base images and provides a GitHub A
 
 ## How it works
 
-The project uses a GitHub Actions workflow to automatically download the ISOs, build the Docker images, verify them, and publish them to Docker Hub.
+The project uses a GitHub Actions workflow to automatically download ISOs, build Docker images, verify them, and publish them to Docker Hub. The workflow is triggered on pushes to the `main` branch, but ignores changes to documentation files (`README.md`, `README_zh.md`).
 
 The `scripts/build.sh` script has been refactored into modular functions for better readability and maintainability. It also includes validation to ensure extracted information from ISO filenames conforms to expected patterns, including format validation for version and release date.
 
 The workflow is defined in the `.github/workflows/docker-publish.yml` file and consists of the following steps:
 
 1.  **Cache ISOs:** The workflow caches the `iso` directory to speed up subsequent runs.
-2.  **Download ISOs:** The workflow runs the `scripts/download-isos.sh` script to download any missing ISOs from the URLs specified in the `iso_urls.txt` file.
-2.  **Build Docker images:** The workflow runs the `scripts/build.sh` script to build the Docker images from the downloaded ISOs. The script will also print a summary of the extracted ISO information and the generated Docker tag for each image.
-3.  **Verify Docker images:** The workflow runs the `scripts/verify-image.sh` script to perform basic verification of the built Docker images.
-4.  **Publish to Docker Hub:** The workflow pushes the verified Docker images to Docker Hub.
-5.  **Clean up old Docker images:** The workflow runs the `scripts/cleanup-docker-images.sh` script periodically to remove old Docker images and free up disk space.
+2.  **Download and Build ISOs (one by one):** The workflow reads the `iso_urls.txt` file and processes each ISO URL individually. For each ISO:
+    *   The `scripts/download-isos.sh` script downloads the ISO.
+    *   The `scripts/build.sh` script builds the Docker image from the downloaded ISO. The script will also print a summary of the extracted ISO information and the generated Docker tag for each image.
+    *   The `scripts/verify-image.sh` script performs basic verification of the built Docker image.
+    *   The verified Docker image is pushed to Docker Hub.
+    *   Temporary build files are cleaned up after each ISO to free up disk space.
+3.  **Clean up old Docker images (scheduled):** The workflow runs the `scripts/cleanup-docker-images.sh` script periodically (once a week) to remove old Docker images and free up disk space.
 
 ## Usage
 
