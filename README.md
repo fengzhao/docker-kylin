@@ -34,3 +34,7 @@ To use the workflow, you need to configure the following secrets in your GitHub 
 
 - **ISO file name:** If your ISO file has a different name, you can change the `ISO_FILE` variable in the `scripts/build.sh` file.
 - **Docker image tag:** You can change the Docker image tag in the `scripts/build.sh` and `.github/workflows/docker-publish.yml` files.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a pull request.
