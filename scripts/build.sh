@@ -89,7 +89,7 @@ extract_info() {
         local fname="$1"
         local pattern="$2"
         local default_value="$3"
-        local extracted_value=$(echo "$fname" | sed -n "s/.*\($pattern\).*/\1/p" | head -n 1 | tr '[:upper:]' '[:lower:]')
+                local extracted_value=$(echo "$fname" | sed -n -E "s/.*($pattern).*/\1/p" | head -n 1 | tr '[:upper:]' '[:lower:]')
         echo "${extracted_value:-$default_value}"
     }
 
