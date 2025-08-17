@@ -43,3 +43,11 @@ jobs:
           ./scripts/verify-image.sh "$IMAGE_TAG"
           docker push "$IMAGE_TAG"
         done < image_tags.txt
+
+  cleanup:
+    runs-on: ubuntu-latest
+    schedule:
+      - cron: '0 0 * * 0' # Run once a week at midnight on Sunday
+    steps:
+      - name: Clean up old Docker images
+        run: ./scripts/cleanup-docker-images.sh

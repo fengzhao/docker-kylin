@@ -17,6 +17,7 @@ The workflow is defined in the `.github/workflows/docker-publish.yml` file and c
 2.  **Build Docker images:** The workflow runs the `scripts/build.sh` script to build the Docker images from the downloaded ISOs. The script will also print a summary of the extracted ISO information and the generated Docker tag for each image.
 3.  **Verify Docker images:** The workflow runs the `scripts/verify-image.sh` script to perform basic verification of the built Docker images.
 4.  **Publish to Docker Hub:** The workflow pushes the verified Docker images to Docker Hub.
+5.  **Clean up old Docker images:** The workflow runs the `scripts/cleanup-docker-images.sh` script periodically to remove old Docker images and free up disk space.
 
 ## Usage
 
