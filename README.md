@@ -8,7 +8,7 @@ This project converts KylinOS ISOs to Docker base images and provides a GitHub A
 
 The project uses a GitHub Actions workflow to automatically download the ISOs, build the Docker images, verify them, and publish them to Docker Hub.
 
-The `scripts/build.sh` script has been refactored into modular functions for better readability and maintainability.
+The `scripts/build.sh` script has been refactored into modular functions for better readability and maintainability. It also includes validation to ensure extracted information from ISO filenames conforms to expected patterns.
 
 The workflow is defined in the `.github/workflows/docker-publish.yml` file and consists of the following steps:
 

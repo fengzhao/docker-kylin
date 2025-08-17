@@ -9,11 +9,42 @@ MOUNT_POINT="/mnt/iso"
 ROOTFS_DIR="/tmp/rootfs"
 IMAGE_TAGS_FILE="image_tags.txt"
 
+# Expected values for validation
+declare -a EXPECTED_BRANCHES=("desktop" "server")
+declare -a EXPECTED_ARCHS=("x86_64" "arm64" "loongarch64" "mips64el" "sw64")
+declare -a EXPECTED_KERNEL_TYPES=("standard" "hwe" "hwe-pp")
+declare -a EXPECTED_DESKTOP_ENVS=("default" "wayland" "kde" "gnome" "ukui" "deepin")
+declare -a EXPECTED_UPDATE_TYPES=("none" "update1")
+declare -a EXPECTED_HARDWARE_TYPES=("generic" "hw-pangux" "hw-kirin9006c" "hw-kirin990")
+declare -a EXPECTED_RELEASE_CHANNELS=("official" "retail")
+declare -a EXPECTED_BUILD_TYPES=("release")
+declare -a EXPECTED_CPU_TYPES=("unknown_cpu" "兆芯" "海光" "intel" "amd" "英特尔12代及以上cpu" "飞腾" "鲲鹏" "龙芯3a5000" "3a6000" "龙芯3a4000" "麒麟9000c" "麒麟9006c" "海思麒麟990")
+declare -a EXPECTED_RELEASE_SUFFIXES=("base" "retail" "hw-pangux" "hw-kirin9006c" "hw-kirin990")
+
 # Function to check for sudo privileges
 check_sudo() {
     if [ "$EUID" -ne 0 ]; then
         echo "Please run as root"
         exit 1
+    fi
+}
+
+# Function to validate extracted information
+validate_info() {
+    local field_name="$1"
+    local value="$2"
+    local -n expected_values_ref="$3"
+
+    local found=false
+    for expected_value in "${expected_values_ref[@]}"; do
+        if [ "$value" == "$expected_value" ]; then
+            found=true
+            break
+        fi
+    done
+
+    if [ "$found" == "false" ]; then
+        echo "Warning: Unexpected value for $field_name: '$value'. Expected one of: ${expected_values_ref[*]}"
     fi
 }
 
@@ -192,6 +223,18 @@ for ISO_FILE in $ISO_FILES; do
     BUILD_TYPE=$(echo "$INFO" | awk '{print $10}')
     CPU_TYPE=$(echo "$INFO" | awk '{print $11}')
     RELEASE_SUFFIX=$(echo "$INFO" | awk '{print $12}')
+
+    validate_info "Branch" "$BRANCH" "EXPECTED_BRANCHES"
+    validate_info "Architecture" "$ARCH" "EXPECTED_ARCHS"
+    # VERSION validation is more complex, might need a separate regex check
+    validate_info "Kernel Type" "$KERNEL_TYPE" "EXPECTED_KERNEL_TYPES"
+    validate_info "Desktop Environment" "$DESKTOP_ENV" "EXPECTED_DESKTOP_ENVS"
+    validate_info "Update Type" "$UPDATE_TYPE" "EXPECTED_UPDATE_TYPES"
+    validate_info "Hardware Type" "$HARDWARE_TYPE" "EXPECTED_HARDWARE_TYPES"
+    validate_info "Release Channel" "$RELEASE_CHANNEL" "EXPECTED_RELEASE_CHANNELS"
+    validate_info "Build Type" "$BUILD_TYPE" "EXPECTED_BUILD_TYPES"
+    validate_info "CPU Type" "$CPU_TYPE" "EXPECTED_CPU_TYPES"
+    validate_info "Release Suffix" "$RELEASE_SUFFIX" "EXPECTED_RELEASE_SUFFIXES"
 
     mount_iso "$ISO_FILE"
     copy_rootfs
