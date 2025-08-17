@@ -5,6 +5,12 @@
 
 set -e
 
+# Check if the script is being run with sudo
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"_DIR"
+    exit 1
+fi
+
 # Set the ISO file path.
 ISO_FILE="iso/custom-distro.iso"
 
