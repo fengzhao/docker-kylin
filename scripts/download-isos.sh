@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # This script downloads ISOs from a list of URLs.
@@ -17,16 +18,19 @@ fi
 
 FILENAME=$(basename -- "$URL")
 
-# Function to extract info using grep -oP
+# Function to extract info using grep -oE and sed
 extract_field() {
     local filename="$1"
     local pattern="$2"
     local default_value="$3"
-    local extracted_value=$(echo "$filename" | grep -oP "$pattern" | head -n 1)
+    local extracted_value=$(echo "$filename" | grep -oE "$pattern" | head -n 1)
+    # Convert to lowercase and remove any leading/trailing whitespace
+    extracted_value=$(echo "$extracted_value" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     echo "${extracted_value:-$default_value}"
 }
 
-BRANCH=$(extract_field "$FILENAME" "(?<=Kylin-)(Desktop|Server)" "")
+BRANCH=$(extract_field "$FILENAME" "(Desktop|Server)" "")
+BRANCH=$(echo "$BRANCH" | sed 's/kylin-//g') # Remove 'kylin-' prefix if present
 ARCH=$(extract_field "$FILENAME" "(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)" "")
 VERSION=$(extract_field "$FILENAME" "V[0-9]+-SP[0-9]+-[0-9]+" "")
 RELEASE_DATE=$(extract_field "$FILENAME" "20[0-9]{6}" "unknown")
@@ -38,19 +42,6 @@ RELEASE_CHANNEL=$(extract_field "$FILENAME" "(Retail)" "official")
 BUILD_TYPE=$(extract_field "$FILENAME" "(Release)" "release")
 CPU_TYPE="unknown_cpu" # Removed specific CPU extraction due to complexity and redundancy
 RELEASE_SUFFIX=$(extract_field "$FILENAME" "(Retail|HW-[a-zA-Z0-9]+)" "base")
-
-# Convert all extracted values to lowercase
-BRANCH=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]')
-ARCH=$(echo "$ARCH" | tr '[:upper:]' '[:lower:]')
-VERSION=$(echo "$VERSION" | tr '[:upper:]' '[:lower:]')
-KERNEL_TYPE=$(echo "$KERNEL_TYPE" | tr '[:upper:]' '[:lower:]')
-DESKTOP_ENV=$(echo "$DESKTOP_ENV" | tr '[:upper:]' '[:lower:]')
-UPDATE_TYPE=$(echo "$UPDATE_TYPE" | tr '[:upper:]' '[:lower:]')
-HARDWARE_TYPE=$(echo "$HARDWARE_TYPE" | tr '[:upper:]' '[:lower:]')
-RELEASE_CHANNEL=$(echo "$RELEASE_CHANNEL" | tr '[:upper:]' '[:lower:]')
-BUILD_TYPE=$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
-CPU_TYPE=$(echo "$CPU_TYPE" | tr '[:upper:]' '[:lower:]')
-RELEASE_SUFFIX=$(echo "$RELEASE_SUFFIX" | tr '[:upper:]' '[:lower:]')
 
 # Check if essential info is missing
 if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
@@ -65,7 +56,7 @@ mkdir -p "$DOWNLOAD_DIR"
 
 # Download the ISO
 echo "Downloading $FILENAME to $DOWNLOAD_DIR"
-wget -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
+wget -q -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
 
 # Output the path to the downloaded ISO
 echo "$DOWNLOAD_DIR/$FILENAME"
