@@ -15,7 +15,7 @@ fi
 echo "Verifying Docker image: $IMAGE_TAG"
 
 # Run a simple command inside the container to verify basic functionality
-docker run --rm "$IMAGE_TAG" /bin/bash -c "ls / && cat /etc/os-release"
+docker run --rm "$IMAGE_TAG" /bin/sh -c "ls / && cat /etc/os-release"
 
 if [ $? -eq 0 ]; then
     echo "Image verification successful for $IMAGE_TAG"
