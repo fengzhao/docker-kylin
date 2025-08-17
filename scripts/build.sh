@@ -113,7 +113,7 @@ extract_info() {
 # Function to validate version format
 validate_version_format() {
     local version="$1"
-    if ! [[ "$version" =~ ^V[0-9]+-SP[0-9]+-[0-9]+$ ]]; then
+    if ! [[ "$version" =~ ^[Vv][0-9]+-SP[0-9]+-[0-9]+$ ]]; then
         echo "Warning: Invalid version format: '$version'. Expected format: VXX-SPX-XXXX"
     fi
 }
@@ -153,6 +153,25 @@ validate_all_info() {
     validate_info "Build Type" "$build_type" "EXPECTED_BUILD_TYPES"
     validate_info "CPU Type" "$cpu_type" "EXPECTED_CPU_TYPES"
     validate_info "Release Suffix" "$release_suffix" "EXPECTED_RELEASE_SUFFIXES"
+}
+
+# Function to mount ISO
+mount_iso() {
+    local iso_file="$1"
+    echo "Mounting the ISO: $iso_file..."
+    sudo mount -o loop "$iso_file" "$MOUNT_POINT" || { echo "Error: Failed to mount the ISO."; exit 1; }
+}
+
+# Function to copy root filesystem
+copy_rootfs() {
+    echo "Copying the root filesystem..."
+    rsync -a --exclude='.disk' "$MOUNT_POINT/" "$ROOTFS_DIR/" || { echo "Error: Failed to copy the root filesystem."; exit 1; }
+}
+
+# Function to unmount ISO
+unmount_iso() {
+    echo "Unmounting the ISO..."
+    sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
 }
 
 # Function to build Docker image
