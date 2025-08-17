@@ -73,59 +73,40 @@ extract_info() {
     local filename="$1"
     local branch
     local arch
+    local version
+    local release_date
+    local kernel_type
+    local desktop_env
+    local update_type
+    local hardware_type
+    local release_channel
+    local build_type
+    local cpu_type
+    local release_suffix
 
-    branch=$(echo "$filename" | grep -o -E '(Desktop|Server)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    arch=$(echo "$filename" | grep -o -E '(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    version=$(echo "$filename" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    release_date=$(echo "$filename" | grep -o -E '20[0-9]{6}' | head -n 1)
-    kernel_type=$(echo "$filename" | grep -o -E '(HWE|HWE-PP)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    desktop_env=$(echo "$filename" | grep -o -E '(Wayland|KDE|GNOME|UKUI|Deepin)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    update_type=$(echo "$filename" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    release_channel=$(echo "$filename" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    build_type=$(echo "$filename" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    cpu_type=$(echo "$filename" | grep -o -E '(兆芯|海光|Intel|AMD|英特尔12代及以上CPU|飞腾|鲲鹏|龙芯3A5000|3A6000|龙芯3A4000|麒麟9000C|麒麟9006C|海思麒麟990)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    release_suffix=$(echo "$filename" | grep -o -E '(Retail|HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    # Function to extract field using sed
+    local extract_field_internal() {
+        local fname="$1"
+        local pattern="$2"
+        local default_value="$3"
+        local extracted_value=$(echo "$fname" | sed -n "s/.*\($pattern\).*/\1/p" | head -n 1 | tr '[:upper:]' '[:lower:]')
+        echo "${extracted_value:-$default_value}"
+    }
 
-    if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
-        echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
-        return 1
-    fi
+    branch=$(extract_field_internal "$filename" "Kylin-Desktop|Kylin-Server" "")
+    branch=$(echo "$branch" | sed 's/kylin-//g')
+    arch=$(extract_field_internal "$filename" "X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el" "")
+    version=$(extract_field_internal "$filename" "V[0-9]\+-SP[0-9]\+-[0-9]\+" "")
+    release_date=$(extract_field_internal "$filename" "20[0-9]{6}" "unknown")
+    kernel_type=$(extract_field_internal "$filename" "HWE-PP|HWE" "standard")
+    desktop_env=$(extract_field_internal "$filename" "Wayland|KDE|GNOME|UKUI|Deepin" "default")
+    update_type=$(extract_field_internal "$filename" "update[0-9]\+" "none")
+    hardware_type=$(extract_field_internal "$filename" "HW-[a-zA-Z0-9]\+" "generic")
+    release_channel=$(extract_field_internal "$filename" "Retail" "official")
+    build_type=$(extract_field_internal "$filename" "Release" "release")
+    cpu_type=$(extract_field_internal "$filename" "兆芯|海光|Intel|AMD|英特尔12代及以上CPU|飞腾|鲲鹏|龙芯3A5000|3A6000|龙芯3A4000|麒麟9000C|麒麟9006C|海思麒麟990" "unknown_cpu")
+    release_suffix=$(extract_field_internal "$filename" "Retail|HW-[a-zA-Z0-9]\+" "base")
 
-    if [ -z "$release_date" ]; then
-        release_date="unknown"
-    fi
-
-    if [ -z "$kernel_type" ]; then
-        kernel_type="standard"
-    fi
-
-    if [ -z "$desktop_env" ]; then
-        desktop_env="default"
-    fi
-
-    if [ -z "$update_type" ]; then
-        update_type="none"
-    fi
-
-    if [ -z "$hardware_type" ]; then
-        hardware_type="generic"
-    fi
-
-    if [ -z "$release_channel" ]; then
-        release_channel="official"
-    fi
-
-    if [ -z "$build_type" ]; then
-        build_type="release"
-    fi
-
-    if [ -z "$cpu_type" ]; then
-        cpu_type="unknown_cpu"
-    fi
-
-    if [ -z "$release_suffix" ]; then
-        release_suffix="base"
-    fi
     echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type $cpu_type $release_suffix"
 }
 

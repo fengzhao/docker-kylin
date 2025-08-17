@@ -28,8 +28,6 @@ To use this project, you can either fork it or use it as a template. You will ne
 - `DOCKERHUB_USERNAME`: Your Docker Hub username.
 - `DOCKERHUB_TOKEN`: Your Docker Hub access token.
 
-Before running the workflow, ensure `jq` is installed on your runner environment if you are using a self-hosted runner. For GitHub-hosted runners, `jq` is usually pre-installed.
-
 You can customize the list of ISOs to be downloaded by editing the `iso_urls.txt` file.
 
 ### Customizing the Docker Image Tag Prefix
