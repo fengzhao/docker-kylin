@@ -7,10 +7,10 @@
 # which will then be used as the context for the Docker build.
 
 # Stage 2: Create the Docker image from the extracted root filesystem.
-FROM scratch
+FROM alpine
 
 # Copy the extracted root filesystem into the Docker image.
 COPY . /
 
 # Set the command to run when the container starts.
-CMD ["/bin/bash"]
+CMD ["/bin/sh"]
