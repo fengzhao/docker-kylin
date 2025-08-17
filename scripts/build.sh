@@ -48,7 +48,7 @@ extract_info() {
     version=$(echo "$filename" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
     release_date=$(echo "$filename" | grep -o -E '20[0-9]{6}' | head -n 1)
     kernel_type=$(echo "$filename" | grep -o -E '(HWE|HWE-PP)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    desktop_env=$(echo "$filename" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    desktop_env=$(echo "$filename" | grep -o -E '(Wayland|KDE|GNOME|UKUI|Deepin)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     update_type=$(echo "$filename" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     release_channel=$(echo "$filename" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     build_type=$(echo "$filename" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')

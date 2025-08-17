@@ -16,7 +16,7 @@ while read URL; do
     VERSION=$(echo "$FILENAME" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
     RELEASE_DATE=$(echo "$FILENAME" | grep -o -E '20[0-9]{6}' | head -n 1)
     KERNEL_TYPE=$(echo "$FILENAME" | grep -o -E '(HWE-PP|HWE)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    DESKTOP_ENV=$(echo "$FILENAME" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    DESKTOP_ENV=$(echo "$FILENAME" | grep -o -E '(Wayland|KDE|GNOME|UKUI|Deepin)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     UPDATE_TYPE=$(echo "$FILENAME" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     HARDWARE_TYPE=$(echo "$FILENAME" | grep -o -E '(HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     RELEASE_CHANNEL=$(echo "$FILENAME" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
