@@ -50,8 +50,8 @@ extract_info() {
     kernel_type=$(echo "$filename" | grep -o -E '(HWE|HWE-PP)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     desktop_env=$(echo "$filename" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     update_type=$(echo "$filename" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
-    hardware_type=$(echo "$filename" | grep -o -E '(HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     release_channel=$(echo "$filename" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    build_type=$(echo "$filename" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
@@ -81,7 +81,11 @@ extract_info() {
     if [ -z "$release_channel" ]; then
         release_channel="official"
     fi
-    echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel"
+
+    if [ -z "$build_type" ]; then
+        build_type="release"
+    fi
+    echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type"
 }
 
 # Function to build Docker image
@@ -95,8 +99,9 @@ build_image() {
     local update_type="$7"
     local hardware_type="$8"
     local release_channel="$9"
+    local build_type="${10}"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -136,11 +141,12 @@ for ISO_FILE in $ISO_FILES; do
     UPDATE_TYPE=$(echo "$INFO" | awk '{print $7}')
     HARDWARE_TYPE=$(echo "$INFO" | awk '{print $8}')
     RELEASE_CHANNEL=$(echo "$INFO" | awk '{print $9}')
+    BUILD_TYPE=$(echo "$INFO" | awk '{print $10}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL"
+    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE"
 
     echo "Docker image built successfully!"
 done

@@ -20,6 +20,7 @@ while read URL; do
     UPDATE_TYPE=$(echo "$FILENAME" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     HARDWARE_TYPE=$(echo "$FILENAME" | grep -o -E '(HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     RELEASE_CHANNEL=$(echo "$FILENAME" | grep -o -E '(Retail)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    BUILD_TYPE=$(echo "$FILENAME" | grep -o -E '(Release)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the URL: $URL. Skipping this file."
@@ -56,8 +57,13 @@ while read URL; do
         RELEASE_CHANNEL="official"
     fi
 
+    # If BUILD_TYPE is empty, set it to 'release'
+    if [ -z "$BUILD_TYPE" ]; then
+        BUILD_TYPE="release"
+    fi
+
     # Create the directory structure
-    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL"
+    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE/$RELEASE_CHANNEL/$BUILD_TYPE"
     mkdir -p "$DOWNLOAD_DIR"
 
     # Download the ISO
