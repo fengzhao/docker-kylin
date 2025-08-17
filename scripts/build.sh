@@ -47,6 +47,7 @@ extract_info() {
     arch=$(echo "$filename" | grep -o -E '(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     version=$(echo "$filename" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
     release_date=$(echo "$filename" | grep -o -E '20[0-9]{6}' | head -n 1)
+    release_type=$(echo "$filename" | grep -o -E '(HWE|HWE-PP|Wayland|update[0-9]+|Retail|HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
@@ -56,7 +57,11 @@ extract_info() {
     if [ -z "$release_date" ]; then
         release_date="unknown"
     fi
-    echo "$branch $arch $version $release_date"
+
+    if [ -z "$release_type" ]; then
+        release_type="standard"
+    fi
+    echo "$branch $arch $version $release_date $release_type"
 }
 
 # Function to build Docker image
@@ -65,8 +70,9 @@ build_image() {
     local arch="$2"
     local version="$3"
     local release_date="$4"
+    local release_type="$5"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${release_type}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -101,11 +107,12 @@ for ISO_FILE in $ISO_FILES; do
     ARCH=$(echo "$INFO" | awk '{print $2}')
     VERSION=$(echo "$INFO" | awk '{print $3}')
     RELEASE_DATE=$(echo "$INFO" | awk '{print $4}')
+    RELEASE_TYPE=$(echo "$INFO" | awk '{print $5}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE"
+    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$RELEASE_TYPE"
 
     echo "Docker image built successfully!"
 done
