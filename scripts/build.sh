@@ -77,7 +77,8 @@ for ISO_FILE in $ISO_FILES; do
     sudo umount "$MOUNT_POINT" || { echo "Error: Failed to unmount the ISO."; exit 1; }
 
     # Build the Docker image.
-    IMAGE_TAG="triatk/kylin:${BRANCH}-${ARCH}"
+    IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
+    IMAGE_TAG="${IMAGE_PREFIX}:${BRANCH}-${ARCH}"
     echo "Building the Docker image with tag: $IMAGE_TAG"
     docker build -t "$IMAGE_TAG" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
 

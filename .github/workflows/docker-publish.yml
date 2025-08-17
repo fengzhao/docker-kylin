@@ -16,6 +16,8 @@ jobs:
       run: ./scripts/download-isos.sh
 
     - name: Build and Verify Docker images
+      env:
+        DOCKER_IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/kylin
       run: |
         # The build script requires sudo, so we need to run it with sudo
         # and make sure the environment variables are passed.

@@ -23,6 +23,22 @@ To use this project, you can either fork it or use it as a template. You will ne
 
 You can customize the list of ISOs to be downloaded by editing the `iso_urls.txt` file.
 
+### Customizing the Docker Image Tag Prefix
+
+By default, the Docker images are tagged with the prefix `triatk/kylin`. You can customize this prefix by modifying the `DOCKER_IMAGE_PREFIX` environment variable in the `.github/workflows/docker-publish.yml` file.
+
+For example, to change the prefix to `myusername/myrepo`:
+
+```yaml
+    - name: Build and Verify Docker images
+      env:
+        DOCKER_IMAGE_PREFIX: myusername/myrepo
+      run: |
+        # The build script requires sudo, so we need to run it with sudo
+        # and make sure the environment variables are passed.
+        sudo -E ./scripts/build.sh
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request.
