@@ -18,6 +18,7 @@ while read URL; do
     KERNEL_TYPE=$(echo "$FILENAME" | grep -o -E '(HWE-PP|HWE)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     DESKTOP_ENV=$(echo "$FILENAME" | grep -o -E '(Wayland)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     UPDATE_TYPE=$(echo "$FILENAME" | grep -o -E '(update[0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    HARDWARE_TYPE=$(echo "$FILENAME" | grep -o -E '(HW-[a-zA-Z0-9]+)' | head -n 1 | tr '[:upper:]' '[:lower:]')
 
     if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the URL: $URL. Skipping this file."
@@ -44,8 +45,13 @@ while read URL; do
         UPDATE_TYPE="none"
     fi
 
+    # If HARDWARE_TYPE is empty, set it to 'generic'
+    if [ -z "$HARDWARE_TYPE" ]; then
+        HARDWARE_TYPE="generic"
+    fi
+
     # Create the directory structure
-    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE"
+    DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV/$UPDATE_TYPE/$HARDWARE_TYPE"
     mkdir -p "$DOWNLOAD_DIR"
 
     # Download the ISO
