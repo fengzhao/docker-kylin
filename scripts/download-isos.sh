@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # This script downloads ISOs from a list of URLs.
@@ -12,7 +11,7 @@ mkdir -p iso
 URL="$1"
 
 if [ -z "$URL" ]; then
-    echo "Usage: $0 <URL>"
+    echo "Usage: $0 <URL>" >&2
     exit 1
 fi
 
@@ -45,7 +44,7 @@ RELEASE_SUFFIX=$(extract_field "$FILENAME" "(Retail|HW-[a-zA-Z0-9]+)" "base")
 
 # Check if essential info is missing
 if [ -z "$BRANCH" ] || [ -z "$ARCH" ] || [ -z "$VERSION" ]; then
-    echo "Warning: Could not determine essential metadata (branch, architecture, or version) from the URL: $URL. Skipping this file."
+    echo "Warning: Could not determine essential metadata (branch, architecture, or version) from the URL: $URL. Skipping this file." >&2
     echo "" # Output empty path to signal failure to workflow
     exit 0 # Exit successfully so workflow can continue
 fi
@@ -55,8 +54,14 @@ DOWNLOAD_DIR="iso/$BRANCH/$ARCH/$VERSION/$RELEASE_DATE/$KERNEL_TYPE/$DESKTOP_ENV
 mkdir -p "$DOWNLOAD_DIR"
 
 # Download the ISO
-echo "Downloading $FILENAME to $DOWNLOAD_DIR"
-wget -q -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
+echo "Downloading $FILENAME to $DOWNLOAD_DIR" >&2
+wget -q -nv -c -O "$DOWNLOAD_DIR/$FILENAME" "$URL"
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to download $FILENAME from $URL." >&2
+    echo "" # Output empty path to signal failure to workflow
+    exit 0 # Exit successfully so workflow can continue
+fi
 
 # Output the path to the downloaded ISO
 echo "$DOWNLOAD_DIR/$FILENAME"
