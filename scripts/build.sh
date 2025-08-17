@@ -43,15 +43,20 @@ extract_info() {
     local branch
     local arch
 
-    branch=$(echo "$filename" | grep -o -E '(server|desktop)' | head -n 1)
-    arch=$(echo "$filename" | grep -o -E '(amd64|arm64|loongarch64|mips64el|sw64)' | head -n 1)
+    branch=$(echo "$filename" | grep -o -E '(Desktop|Server)' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    arch=$(echo "$filename" | grep -o -E '(X86_64|ARM64|LoongArch64|SW64|x86_64|arm64|mips64el)' | head -n 1 | tr '[:upper:]' '[:lower:]')
     version=$(echo "$filename" | grep -o -E 'V[0-9]+-SP[0-9]+-[0-9]+' | head -n 1 | tr '[:upper:]' '[:lower:]')
+    release_date=$(echo "$filename" | grep -o -E '20[0-9]{6}' | head -n 1)
 
     if [ -z "$branch" ] || [ -z "$arch" ] || [ -z "$version" ]; then
         echo "Warning: Could not determine branch, architecture, or version from the ISO filename: $filename."
         return 1
     fi
-    echo "$branch $arch $version"
+
+    if [ -z "$release_date" ]; then
+        release_date="unknown"
+    fi
+    echo "$branch $arch $version $release_date"
 }
 
 # Function to build Docker image
@@ -59,8 +64,9 @@ build_image() {
     local branch="$1"
     local arch="$2"
     local version="$3"
+    local release_date="$4"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}"
+    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}"
 
     echo "Building the Docker image with tag: $image_tag"
     docker build -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
@@ -94,11 +100,12 @@ for ISO_FILE in $ISO_FILES; do
     BRANCH=$(echo "$INFO" | awk '{print $1}')
     ARCH=$(echo "$INFO" | awk '{print $2}')
     VERSION=$(echo "$INFO" | awk '{print $3}')
+    RELEASE_DATE=$(echo "$INFO" | awk '{print $4}')
 
     mount_iso "$ISO_FILE"
     copy_rootfs
     unmount_iso
-    build_image "$BRANCH" "$ARCH" "$VERSION"
+    build_image "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE"
 
     echo "Docker image built successfully!"
 done
