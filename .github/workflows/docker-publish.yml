@@ -26,6 +26,5 @@ jobs:
 
     - name: Push the Docker image to Docker Hub
       run: |
-        # Tag the image with the Docker Hub username and push it.
-        docker tag custom-distro:latest ${{ secrets.DOCKERHUB_USERNAME }}/custom-distro:latest
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/custom-distro:latest
+        docker tag custom-distro:latest triatk/kylin:latest
+        docker push triatk/kylin:latest
