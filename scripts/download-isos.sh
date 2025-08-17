@@ -3,8 +3,6 @@
 
 # This script downloads ISOs from a list of URLs.
 
-set -e
-
 # Create the iso directory if it doesn't exist
 mkdir -p iso
 
