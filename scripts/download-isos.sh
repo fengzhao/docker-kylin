@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # This script downloads ISOs from a list of URLs.
