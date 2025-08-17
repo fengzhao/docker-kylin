@@ -189,10 +189,53 @@ build_image() {
     local cpu_type="${11}"
     local release_suffix="${12}"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}-${cpu_type}-${release_suffix}"
+
+    # Map architecture names
+    local docker_arch="$arch"
+    if [ "$docker_arch" == "x86_64" ]; then
+        docker_arch="amd64"
+    fi
+
+    local tag_parts=()
+    tag_parts+=("${branch}")
+    tag_parts+=("${docker_arch}")
+    tag_parts+=("${version}")
+    tag_parts+=("${release_date}")
+
+    if [ "$kernel_type" != "standard" ]; then
+        tag_parts+=("${kernel_type}")
+    fi
+    if [ "$desktop_env" != "default" ]; then
+        tag_parts+=("${desktop_env}")
+    fi
+    if [ "$update_type" != "none" ]; then
+        tag_parts+=("${update_type}")
+    fi
+    if [ "$hardware_type" != "generic" ]; then
+        tag_parts+=("${hardware_type}")
+    fi
+    if [ "$release_channel" != "official" ]; then
+        tag_parts+=("${release_channel}")
+    fi
+    if [ "$build_type" != "release" ]; then
+        tag_parts+=("${build_type}")
+    fi
+    if [ "$cpu_type" != "unknown_cpu" ]; then
+        tag_parts+=("${cpu_type}")
+    fi
+    if [ "$release_suffix" != "base" ]; then
+        tag_parts+=("${release_suffix}")
+    fi
+
+    local image_tag="${image_prefix}:$(IFS=-; echo "${tag_parts[*]}")"
+
+    local build_args=()
+    if [ "$arch" == "arm64" ]; then
+        build_args+=("--platform" "linux/arm64")
+    fi
 
     echo "Building the Docker image with tag: $image_tag"
-    docker build -f Dockerfile -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
+    docker build "${build_args[@]}" -f Dockerfile -t "$image_tag" "$ROOTFS_DIR" || { echo "Error: Failed to build the Docker image."; exit 1; }
     echo "$image_tag" >> "$IMAGE_TAGS_FILE"
 }
 
@@ -212,7 +255,45 @@ summarize_build_info() {
     local cpu_type="${12}"
     local release_suffix="${13}"
     local image_prefix=${DOCKER_IMAGE_PREFIX:-triatk/kylin}
-    local image_tag="${image_prefix}:${branch}-${arch}-${version}-${release_date}-${kernel_type}-${desktop_env}-${update_type}-${hardware_type}-${release_channel}-${build_type}-${cpu_type}-${release_suffix}"
+
+    # Map architecture names
+    local docker_arch="$arch"
+    if [ "$docker_arch" == "x86_64" ]; then
+        docker_arch="amd64"
+    fi
+
+    local tag_parts=()
+    tag_parts+=("${branch}")
+    tag_parts+=("${docker_arch}")
+    tag_parts+=("${version}")
+    tag_parts+=("${release_date}")
+
+    if [ "$kernel_type" != "standard" ]; then
+        tag_parts+=("${kernel_type}")
+    fi
+    if [ "$desktop_env" != "default" ]; then
+        tag_parts+=("${desktop_env}")
+    fi
+    if [ "$update_type" != "none" ]; then
+        tag_parts+=("${update_type}")
+    fi
+    if [ "$hardware_type" != "generic" ]; then
+        tag_parts+=("${hardware_type}")
+    fi
+    if [ "$release_channel" != "official" ]; then
+        tag_parts+=("${release_channel}")
+    fi
+    if [ "$build_type" != "release" ]; then
+        tag_parts+=("${build_type}")
+    fi
+    if [ "$cpu_type" != "unknown_cpu" ]; then
+        tag_parts+=("${cpu_type}")
+    fi
+    if [ "$release_suffix" != "base" ]; then
+        tag_parts+=("${release_suffix}")
+    fi
+
+    local image_tag="${image_prefix}:$(IFS=-; echo "${tag_parts[*]}")"
 
     echo "\n--- Build Summary ---"
     echo "ISO File: $iso_file"
