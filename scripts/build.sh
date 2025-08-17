@@ -129,6 +129,51 @@ extract_info() {
     echo "$branch $arch $version $release_date $kernel_type $desktop_env $update_type $hardware_type $release_channel $build_type $cpu_type $release_suffix"
 }
 
+# Function to validate version format
+validate_version_format() {
+    local version="$1"
+    if ! [[ "$version" =~ ^V[0-9]+-SP[0-9]+-[0-9]+$ ]]; then
+        echo "Warning: Invalid version format: '$version'. Expected format: VXX-SPX-XXXX"
+    fi
+}
+
+# Function to validate release date format
+validate_release_date_format() {
+    local release_date="$1"
+    if [ "$release_date" != "unknown" ] && ! [[ "$release_date" =~ ^20[0-9]{6}$ ]]; then
+        echo "Warning: Invalid release date format: '$release_date'. Expected format: YYYYMMDD or 'unknown'"
+    fi
+}
+
+# Function to validate all extracted information
+validate_all_info() {
+    local branch="$1"
+    local arch="$2"
+    local version="$3"
+    local release_date="$4"
+    local kernel_type="$5"
+    local desktop_env="$6"
+    local update_type="$7"
+    local hardware_type="$8"
+    local release_channel="$9"
+    local build_type="${10}"
+    local cpu_type="${11}"
+    local release_suffix="${12}"
+
+    validate_info "Branch" "$branch" "EXPECTED_BRANCHES"
+    validate_info "Architecture" "$arch" "EXPECTED_ARCHS"
+    validate_version_format "$version"
+    validate_release_date_format "$release_date"
+    validate_info "Kernel Type" "$kernel_type" "EXPECTED_KERNEL_TYPES"
+    validate_info "Desktop Environment" "$desktop_env" "EXPECTED_DESKTOP_ENVS"
+    validate_info "Update Type" "$update_type" "EXPECTED_UPDATE_TYPES"
+    validate_info "Hardware Type" "$hardware_type" "EXPECTED_HARDWARE_TYPES"
+    validate_info "Release Channel" "$release_channel" "EXPECTED_RELEASE_CHANNELS"
+    validate_info "Build Type" "$build_type" "EXPECTED_BUILD_TYPES"
+    validate_info "CPU Type" "$cpu_type" "EXPECTED_CPU_TYPES"
+    validate_info "Release Suffix" "$release_suffix" "EXPECTED_RELEASE_SUFFIXES"
+}
+
 # Function to build Docker image
 build_image() {
     local branch="$1"
@@ -224,17 +269,7 @@ for ISO_FILE in $ISO_FILES; do
     CPU_TYPE=$(echo "$INFO" | awk '{print $11}')
     RELEASE_SUFFIX=$(echo "$INFO" | awk '{print $12}')
 
-    validate_info "Branch" "$BRANCH" "EXPECTED_BRANCHES"
-    validate_info "Architecture" "$ARCH" "EXPECTED_ARCHS"
-    # VERSION validation is more complex, might need a separate regex check
-    validate_info "Kernel Type" "$KERNEL_TYPE" "EXPECTED_KERNEL_TYPES"
-    validate_info "Desktop Environment" "$DESKTOP_ENV" "EXPECTED_DESKTOP_ENVS"
-    validate_info "Update Type" "$UPDATE_TYPE" "EXPECTED_UPDATE_TYPES"
-    validate_info "Hardware Type" "$HARDWARE_TYPE" "EXPECTED_HARDWARE_TYPES"
-    validate_info "Release Channel" "$RELEASE_CHANNEL" "EXPECTED_RELEASE_CHANNELS"
-    validate_info "Build Type" "$BUILD_TYPE" "EXPECTED_BUILD_TYPES"
-    validate_info "CPU Type" "$CPU_TYPE" "EXPECTED_CPU_TYPES"
-    validate_info "Release Suffix" "$RELEASE_SUFFIX" "EXPECTED_RELEASE_SUFFIXES"
+    validate_all_info "$BRANCH" "$ARCH" "$VERSION" "$RELEASE_DATE" "$KERNEL_TYPE" "$DESKTOP_ENV" "$UPDATE_TYPE" "$HARDWARE_TYPE" "$RELEASE_CHANNEL" "$BUILD_TYPE" "$CPU_TYPE" "$RELEASE_SUFFIX"
 
     mount_iso "$ISO_FILE"
     copy_rootfs
