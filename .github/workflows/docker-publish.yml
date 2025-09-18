@@ -1,5 +1,6 @@
 name: Docker Image CI
 
+
 on:
   push:
     branches: [ "main" ]
@@ -8,6 +9,8 @@ on:
       - 'README_zh.md'
   schedule:
     - cron: '0 0 * * 0' # Run once a week at midnight on Sunday
+  workflow_dispatch: 
+
 
 jobs:
   generate-matrix:
