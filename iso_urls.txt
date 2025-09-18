@@ -9,3 +9,7 @@ https://iso.kylinos.cn/web_pungi/download/cdn/jDQuCxaWHgKXY5l8kfMbvt0GF43SEpBo/K
 https://distro-images.kylinos.cn:8802/web_pungi/download/share/Jt8im0leZ3rV5yWbBNXwsH6EgI2LCdx1/Kylin-Desktop-V10-SP1-2403-Wayland-Release-Retail-HW-pangux-20240518-arm64.iso
 https://distro-images.kylinos.cn:8802/web_pungi/download/share/Poh4K2tQfcEFINHkOV0yLCvm6BdwlsZW/Kylin-Desktop-V10-SP1-2403-update1-Wayland-Release-Retail-HW-kirin9006c-20240910-ARM64.iso
 https://distro-images.kylinos.cn:8802/web_pungi/download/share/KvPfn0UQARHBtXx4WCmThFDoGgJ9yrpa/Kylin-Desktop-V10-SP1-2403-update1-Wayland-Release-Retail-HW-kirin990-20250107-ARM64.iso
+https://iso.kylinos.cn/web_pungi/download/cdn/kz4Ju6NbSg7DUA9mlf5M2rqZeBRat1vC/Kylin-Server-V11-2503-Release-General-20250715-X86_64.iso
+https://iso.kylinos.cn/web_pungi/download/cdn/2r9DfSBgAkQu4atRG3zFdnIshlTbVCPo/Kylin-Server-V11-2503-Release-General-20250715-ARM64.iso
+https://iso.kylinos.cn/web_pungi/download/cdn/HsNdCbacX6gEiS2UvTFf8uqQAkI0Ohyz/Kylin-Server-V11-2503-Release-General-20250715-LoongArch64.iso
+
